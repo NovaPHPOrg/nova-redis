@@ -4,11 +4,12 @@ namespace nova\plugin\redis;
 
 use nova\framework\cache\CacheException;
 use nova\framework\cache\iCacheDriver;
+use Redis;
 use RedisException;
 
 class RedisCacheDriver implements iCacheDriver
 {
-    private \Redis $redis;
+    private Redis $redis;
 
     private string $prefix = "nova_cache_";
 
@@ -18,7 +19,7 @@ class RedisCacheDriver implements iCacheDriver
     public function __construct($shared = false)
     {
         //连接redis
-        $this->redis = new \Redis();
+        $this->redis = new Redis();
         // 读取redis账号密码
         $config = $GLOBALS['__nova_app_config__']['redis'];
         // 连接redis
