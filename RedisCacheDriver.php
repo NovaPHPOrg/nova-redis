@@ -90,18 +90,26 @@ class RedisCacheDriver implements iCacheDriver
     {
         $this->removeKeyStart($this->prefix);
     }
-
+    
     /**
      * @throws RedisException
      */
     private function removeKeyStart($prefix): void
     {
-        $keys = $this->redis->keys($prefix . '*');
+        $cursor = null;  // SCAN 游标
+        $deletedCount = 0;
 
-        if (!empty($keys)) {
-            foreach ($keys as $key) {
-                $this->redis->del($key);
+        do {
+            // 使用 SCAN 增量获取匹配的键
+            $keys = $this->redis->scan($cursor, $prefix . '*');
+
+            if ($keys !== false) {
+                foreach ($keys as $key) {
+                    $this->redis->del($key);
+                    $deletedCount++;
+                }
             }
-        }
+        } while ($cursor > 0);  // 当 cursor 为 0 时，表示 SCAN 完成
     }
+
 }
