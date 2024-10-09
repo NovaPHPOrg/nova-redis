@@ -80,7 +80,7 @@ class RedisCacheDriver implements iCacheDriver
      */
     public function deleteKeyStartWith($key): void
     {
-        $this->redis->del($this->prefix . $key."*");
+        $this->removeKeyStart($this->prefix . $key);
     }
 
     /**
@@ -88,6 +88,20 @@ class RedisCacheDriver implements iCacheDriver
      */
     public function clear(): void
     {
-        $this->redis->del($this->prefix ."*");
+        $this->removeKeyStart($this->prefix);
+    }
+
+    /**
+     * @throws RedisException
+     */
+    private function removeKeyStart($prefix): void
+    {
+        $keys = $this->redis->keys($prefix . '*');
+
+        if (!empty($keys)) {
+            foreach ($keys as $key) {
+                $this->redis->del($key);
+            }
+        }
     }
 }
