@@ -61,7 +61,7 @@ class RedisCacheDriver implements iCacheDriver
         $options = null;
         if ($expire > 0){
             $options = [
-                "EXAT" => time() + $expire
+                "EX" => $expire
             ];
         }
 
