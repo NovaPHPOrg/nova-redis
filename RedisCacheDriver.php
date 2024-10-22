@@ -110,4 +110,12 @@ class RedisCacheDriver implements iCacheDriver
         } while ($cursor > 0);  // 当 cursor 为 0 时，表示 SCAN 完成
     }
 
+    /**
+     * @throws RedisException
+     */
+    public function getTtl($key): int
+    {
+        // 获取指定键的剩余生存时间
+        return $this->redis->ttl($this->prefix . $key) ?: -1;
+    }
 }
