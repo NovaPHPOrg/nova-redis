@@ -17,5 +17,6 @@ return [
             'port' => 6379,
             'password' => '',
         ]
-    ]
+    ],
+    'cache_driver' => 'nova\plugin\redis\RedisCacheDriver',
 ];
