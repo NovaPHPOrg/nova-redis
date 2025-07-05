@@ -69,38 +69,42 @@ class RedisCacheDriver implements iCacheDriver
     /**
      * @throws RedisException|CacheException
      */
-    public function set($key, $value, $expire): void
+    public function set($key, $value, $expire): bool
     {
         $this->ensureConnected();
         $options = $expire > 0 ? ["EX" => $expire] : [];
         $this->redis->set($this->prefix . $key, serialize($value), $options);
+        return true;
     }
 
     /**
      * @throws RedisException|CacheException
      */
-    public function delete($key): void
+    public function delete($key): bool
     {
         $this->ensureConnected();
         $this->redis->del($this->prefix . $key);
+        return true;
     }
 
     /**
      * @throws RedisException|CacheException
      */
-    public function deleteKeyStartWith($key): void
+    public function deleteKeyStartWith($key): bool
     {
         $this->ensureConnected();
         $this->removeKeyStart($this->prefix . $key);
+        return true;
     }
 
     /**
      * @throws RedisException|CacheException
      */
-    public function clear(): void
+    public function clear(): bool
     {
         $this->ensureConnected();
         $this->removeKeyStart($this->prefix);
+        return true;
     }
 
     /**
@@ -127,5 +131,10 @@ class RedisCacheDriver implements iCacheDriver
     {
         $this->ensureConnected();
         return $this->redis->ttl($this->prefix . $key) ?: -1;
+    }
+
+    public function gc(string $startKey, int $maxCount)
+    {
+
     }
 }
