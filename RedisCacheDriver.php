@@ -26,6 +26,8 @@ class RedisCacheDriver implements iCacheDriver
     private Redis $redis;
     private string $prefix = "nova:";
 
+    private RedisConfig $config;
+
     /**
      */
     public function __construct($shared = false)
@@ -34,6 +36,7 @@ class RedisCacheDriver implements iCacheDriver
         if (!$shared) {
             $this->prefix = md5(ROOT_PATH).":";
         }
+        $this->config = new RedisConfig();
     }
 
     /**
@@ -44,10 +47,10 @@ class RedisCacheDriver implements iCacheDriver
         $config = config('redis');
         try {
             // 使用持久连接
-            $this->redis->pconnect($config['host'], $config['port'], $config['timeout'] ?? 0);
+            $this->redis->pconnect($this->config->host, $this->config->port, $this->config->timeout);
 
-            if (!empty($config['password'])) {
-                if (!$this->redis->auth($config['password'])) {
+            if (!empty($this->config->password)) {
+                if (!$this->redis->auth($this->config->password)) {
                     throw new CacheException("Redis auth failed");
                 }
             }
