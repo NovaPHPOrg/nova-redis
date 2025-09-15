@@ -136,8 +136,52 @@ class RedisCacheDriver implements iCacheDriver
         return $this->redis->ttl($this->prefix . $key) ?: -1;
     }
 
-    public function gc(string $startKey, int $maxCount)
+    public function gc(string $startKey, int $maxCount): bool
     {
-
+        return true;
     }
+
+    public function getAll(string $startKey): array
+    {
+        $this->ensureConnected();
+        
+        $pattern = $this->prefix . $startKey . '*';
+        $cursor = null;
+        $allKeys = [];
+        
+        // 第一步：收集所有匹配的键
+        do {
+            $keys = $this->redis->scan($cursor, $pattern);
+            if ($keys !== false && !empty($keys)) {
+                $allKeys = array_merge($allKeys, $keys);
+            }
+        } while ($cursor > 0);
+        
+        if (empty($allKeys)) {
+            return [];
+        }
+        
+        // 第二步：批量获取所有值（一次网络往返）
+        $values = $this->redis->mget($allKeys);
+        $result = [];
+        
+        foreach ($allKeys as $index => $fullKey) {
+            $data = $values[$index];
+            if ($data !== false) {
+                // 移除前缀，返回逻辑键名（与文件缓存保持一致）
+                $logicalKey = substr($fullKey, strlen($this->prefix));
+                
+                // 安全反序列化
+                try {
+                    $result[$logicalKey] = unserialize($data);
+                } catch (\Throwable $e) {
+                    // 损坏的数据直接跳过，不影响其他数据
+                    continue;
+                }
+            }
+        }
+        
+        return $result;
+    }
+    
 }
